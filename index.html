@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tamagotchi v7 Safe Paste</title>
+<title>Tamagotchi v7.1</title>
 
 <style>
 body{
@@ -48,8 +48,7 @@ body{
 /* UI */
 .level,
 #emotion,
-#memory,
-#menuUI{
+#memory{
   font-size:10px;
   font-weight:900;
   color:#87c1f5;
@@ -73,20 +72,38 @@ body{
   margin:6px 0;
 }
 
-/* 血條 */
+/* =========================
+   📊 三條血條（核心修復）
+========================= */
+
 .bar{
-  height:5px;
   width:85%;
-  margin:4px auto;
-  background:#ffe5ef;
+  height:5px;
+  margin:3px auto;
   border-radius:10px;
   overflow:hidden;
+  background:#eee;
 }
 
-.fill{
+/* ❤️ HP */
+.hpFill{
+  height:100%;
+  width:100%;
+  background:#ff7aa2;
+}
+
+/* 🍖 Hunger */
+.hungerFill{
   height:100%;
   width:0%;
   background:#f0c895;
+}
+
+/* 💓 Affection */
+.affectionFill{
+  height:100%;
+  width:0%;
+  background:#b7a6ff;
 }
 
 /* 選單 */
@@ -141,14 +158,20 @@ body{
     <div class="pet" id="pet">꒰ ´꒳`∗ ꒱</div>
 
     <div id="memory">剛出生</div>
-
     <div id="emotion">心情：普通</div>
 
-    <div class="bar"><div class="fill" id="fill"></div></div>
+    <!-- ❤️ HP -->
+    <div class="bar"><div class="hpFill" id="hpFill"></div></div>
 
-    <!-- 📋 MENU -->
+    <!-- 🍖 Hunger -->
+    <div class="bar"><div class="hungerFill" id="hungerFill"></div></div>
+
+    <!-- 💓 Affection -->
+    <div class="bar"><div class="affectionFill" id="affectionFill"></div></div>
+
+    <!-- MENU -->
     <div id="menuUI" class="menu">
-      <div id="menuText">▶ 餵食</div>
+      <div>▶ 餵食</div>
       <div>玩耍</div>
       <div>哄睡</div>
     </div>
@@ -165,28 +188,21 @@ body{
 
 <script>
 
-/* =========================
-   🎯 v7 完整系統（已整合）
-   ========================= */
-
 let hunger = 0;
 let hp = 100;
-let exp = 0;
-let level = 1;
 let affection = 0;
 
+let exp = 0;
+let level = 1;
+
 let menu = false;
-let menuIndex = 0;
 
-/* 😴 哄睡時間 */
 let sleepUntil = 0;
-
-/* 🍽 餵食時間 */
 let lastFeed = Date.now();
 
-/* -------------------------
-   核心功能
---------------------------*/
+/* =========================
+   功能
+========================= */
 
 function feed(){
   hunger = Math.max(0, hunger - 25);
@@ -195,24 +211,19 @@ function feed(){
 }
 
 function play(){
-  affection += 5;
+  affection = Math.min(100, affection + 8);
   exp += 5;
 }
 
-/* 😴 12小時哄睡 */
 function sleep(){
   sleepUntil = Date.now() + 12 * 60 * 60 * 1000;
 }
 
-/* 💤 是否睡眠 */
 function isSleep(){
   return Date.now() < sleepUntil;
 }
 
-/* -------------------------
-   等級系統
---------------------------*/
-
+/* 等級 */
 function expToNext(lv){
   return Math.floor(20 + Math.pow(lv,1.6)*10);
 }
@@ -224,9 +235,9 @@ function levelUp(){
   }
 }
 
-/* -------------------------
-   按鍵（你要求的邏輯）
---------------------------*/
+/* =========================
+   按鍵
+========================= */
 
 function leftBtn(){
   if(menu){
@@ -243,26 +254,20 @@ function rightBtn(){
 }
 
 function middleBtn(){
-
   if(!menu){
     feed();
     return;
   }
-
-  if(menuIndex === 0) feed();
-  if(menuIndex === 1) play();
-  if(menuIndex === 2) sleep();
 }
 
-/* -------------------------
+/* =========================
    主循環
---------------------------*/
+========================= */
 
 setInterval(()=>{
 
 let sleepLock = isSleep();
 
-/* 💤 哄睡保護 */
 if(!sleepLock){
   hunger += 1;
   hp -= hunger > 80 ? 0.4 : -0.2;
@@ -274,11 +279,13 @@ levelUp();
 /* UI */
 document.getElementById("level").textContent = "LV " + level;
 
-document.getElementById("fill").style.width =
-Math.min(100,hunger) + "%";
+document.getElementById("hpFill").style.width = hp + "%";
+document.getElementById("hungerFill").style.width = hunger + "%";
+document.getElementById("affectionFill").style.width = affection + "%";
 
 document.getElementById("emotion").textContent =
-affection > 20 ? "心情：開心" : (hunger > 70 ? "心情：難過" : "心情：普通");
+affection > 60 ? "心情：很開心" :
+hunger > 70 ? "心情：難過" : "心情：普通";
 
 document.getElementById("battery").textContent =
 Math.max(0,100-Math.min(100,hunger)) + "%";
@@ -286,10 +293,8 @@ Math.max(0,100-Math.min(100,hunger)) + "%";
 document.getElementById("memory").textContent =
 "上次餵食：" + Math.floor((Date.now()-lastFeed)/1000) + "秒前";
 
-/* 💤 狀態顯示 */
 if(sleepLock){
   document.getElementById("pet").textContent = "꒰ᵕ༚ᵕ꒱ zZ";
-  document.getElementById("memory").textContent = "哄睡保護中";
 }else{
   document.getElementById("pet").textContent = "꒰ ´꒳`∗ ꒱";
 }
