@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tamagotchi v4 Fixed</title>
+<title>Tamagotchi v7 Safe Paste</title>
 
 <style>
 body{
@@ -14,6 +14,7 @@ body{
   height:100vh;
   font-family:"PingFang TC","Microsoft JhengHei",sans-serif;
   background:transparent;
+  user-select:none;
 }
 
 #tama{
@@ -27,7 +28,7 @@ body{
   position:relative;
 }
 
-/* 📺 LCD */
+/* LCD */
 .screen{
   width:62%;
   height:118px;
@@ -44,44 +45,17 @@ body{
   overflow:hidden;
 }
 
-/* 高光 */
-.screen::before{
-  content:"";
-  position:absolute;
-  top:-35%;
-  left:-30%;
-  width:170%;
-  height:70%;
-  background:linear-gradient(120deg,rgba(255,255,255,.65),rgba(255,255,255,0));
-  transform:rotate(-12deg);
-  pointer-events:none;
-}
-
-/* 像素 */
-.screen::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:repeating-linear-gradient(
-    0deg,
-    rgba(180,200,255,.06) 0px,
-    rgba(180,200,255,.06) 1px,
-    rgba(255,255,255,0) 2px,
-    rgba(255,255,255,0) 3px
-  );
-  pointer-events:none;
-}
-
-/* 📌 文字 */
+/* UI */
 .level,
-.status,
-#emotion{
+#emotion,
+#memory,
+#menuUI{
   font-size:10px;
   font-weight:900;
   color:#87c1f5;
 }
 
-/* 🔋 電量 */
+/* 電量 */
 #battery{
   position:absolute;
   top:6px;
@@ -91,7 +65,7 @@ body{
   color:#87c1f5;
 }
 
-/* 🐣 寵物 */
+/* 寵物 */
 .pet{
   font-size:22px;
   font-weight:900;
@@ -99,9 +73,12 @@ body{
   margin:6px 0;
 }
 
+/* 血條 */
 .bar{
   height:5px;
-  background:#e8ecff;
+  width:85%;
+  margin:4px auto;
+  background:#ffe5ef;
   border-radius:10px;
   overflow:hidden;
 }
@@ -109,10 +86,22 @@ body{
 .fill{
   height:100%;
   width:0%;
-  background:#b8d2ff;
+  background:#f0c895;
 }
 
-/* 🎮 按鍵 */
+/* 選單 */
+.menu{
+  display:none;
+  font-size:10px;
+  font-weight:900;
+  color:#87c1f5;
+}
+
+.menu.active{
+  display:block;
+}
+
+/* 按鍵 */
 .buttons{
   position:absolute;
   top:178px;
@@ -128,7 +117,6 @@ body{
   border-radius:50%;
   border:none;
   background:linear-gradient(145deg,#ffe3f6,#e6f6ff);
-  box-shadow:0 4px 0 rgba(0,0,0,.15);
   font-weight:900;
   cursor:pointer;
 }
@@ -152,91 +140,159 @@ body{
 
     <div class="pet" id="pet">꒰ ´꒳`∗ ꒱</div>
 
+    <div id="memory">剛出生</div>
+
     <div id="emotion">心情：普通</div>
 
-    <div class="status" id="status">正常</div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
 
-    <div class="bar">
-      <div class="fill" id="fill"></div>
+    <!-- 📋 MENU -->
+    <div id="menuUI" class="menu">
+      <div id="menuText">▶ 餵食</div>
+      <div>玩耍</div>
+      <div>哄睡</div>
     </div>
 
   </div>
 
-  <!-- 🎮 已修正：中鍵是 ❤ -->
   <div class="buttons">
-    <button class="btn" onclick="poke()">◀</button>
-    <button class="btn btn-center" onclick="feed()">❤</button>
-    <button class="btn" onclick="next()">▶</button>
+    <button class="btn" onclick="leftBtn()">◀</button>
+    <button class="btn btn-center" onclick="middleBtn()">❤</button>
+    <button class="btn" onclick="rightBtn()">▶</button>
   </div>
 
 </div>
 
 <script>
 
+/* =========================
+   🎯 v7 完整系統（已整合）
+   ========================= */
+
 let hunger = 0;
+let hp = 100;
 let exp = 0;
 let level = 1;
-let sleep = false;
+let affection = 0;
+
+let menu = false;
+let menuIndex = 0;
+
+/* 😴 哄睡時間 */
+let sleepUntil = 0;
+
+/* 🍽 餵食時間 */
+let lastFeed = Date.now();
+
+/* -------------------------
+   核心功能
+--------------------------*/
 
 function feed(){
-  hunger = Math.max(0, hunger - 30);
-  exp += 10;
-
-  document.getElementById("pet").textContent = "‘٩꒰｡•◡•｡꒱۶’";
-  setTimeout(()=>document.getElementById("pet").textContent="꒰ ´꒳`∗ ꒱",500);
+  hunger = Math.max(0, hunger - 25);
+  hp = Math.min(100, hp + 10);
+  lastFeed = Date.now();
 }
 
-function poke(){
-  document.getElementById("pet").textContent = "꒰ ◔_◔ ꒱";
-  setTimeout(()=>document.getElementById("pet").textContent="꒰ ´꒳`∗ ꒱",500);
-}
-
-function next(){
+function play(){
+  affection += 5;
   exp += 5;
 }
 
-/* 🐣 進化 */
-function getPet(){
-  if(level >= 10) return "✧꒰◍•ᴗ•◍꒱✧";
-  if(level >= 5) return "꒰•̀ᴗ•́꒱";
-  return "꒰ ´꒳`∗ ꒱";
+/* 😴 12小時哄睡 */
+function sleep(){
+  sleepUntil = Date.now() + 12 * 60 * 60 * 1000;
 }
 
-/* 💤 睡眠 */
-function checkSleep(){
-  sleep = hunger > 90;
+/* 💤 是否睡眠 */
+function isSleep(){
+  return Date.now() < sleepUntil;
 }
 
-/* 🧠 等級 */
-function updateLevel(){
-  if(exp > 50) level = 5;
-  if(exp > 120) level = 10;
+/* -------------------------
+   等級系統
+--------------------------*/
+
+function expToNext(lv){
+  return Math.floor(20 + Math.pow(lv,1.6)*10);
 }
+
+function levelUp(){
+  while(level < 99 && exp >= expToNext(level)){
+    exp -= expToNext(level);
+    level++;
+  }
+}
+
+/* -------------------------
+   按鍵（你要求的邏輯）
+--------------------------*/
+
+function leftBtn(){
+  if(menu){
+    menu = false;
+    document.getElementById("menuUI").classList.remove("active");
+  }else{
+    exp += 2;
+  }
+}
+
+function rightBtn(){
+  menu = !menu;
+  document.getElementById("menuUI").classList.toggle("active");
+}
+
+function middleBtn(){
+
+  if(!menu){
+    feed();
+    return;
+  }
+
+  if(menuIndex === 0) feed();
+  if(menuIndex === 1) play();
+  if(menuIndex === 2) sleep();
+}
+
+/* -------------------------
+   主循環
+--------------------------*/
 
 setInterval(()=>{
 
-hunger++;
-exp += 0.3;
+let sleepLock = isSleep();
 
-updateLevel();
-checkSleep();
+/* 💤 哄睡保護 */
+if(!sleepLock){
+  hunger += 1;
+  hp -= hunger > 80 ? 0.4 : -0.2;
+  hp = Math.max(0,Math.min(100,hp));
+}
 
-document.getElementById("pet").textContent =
-sleep ? "꒰ᵕ༚ᵕ꒱ zZ" : getPet();
+levelUp();
 
+/* UI */
 document.getElementById("level").textContent = "LV " + level;
 
 document.getElementById("fill").style.width =
 Math.min(100,hunger) + "%";
 
-document.getElementById("status").textContent =
-sleep ? "睡覺中" : (hunger > 70 ? "餓了" : "正常");
-
 document.getElementById("emotion").textContent =
-sleep ? "心情：睡眠" : (hunger > 70 ? "心情：難過" : "心情：普通");
+affection > 20 ? "心情：開心" : (hunger > 70 ? "心情：難過" : "心情：普通");
 
 document.getElementById("battery").textContent =
-Math.max(0, 100 - Math.min(100,hunger)) + "%";
+Math.max(0,100-Math.min(100,hunger)) + "%";
+
+document.getElementById("memory").textContent =
+"上次餵食：" + Math.floor((Date.now()-lastFeed)/1000) + "秒前";
+
+/* 💤 狀態顯示 */
+if(sleepLock){
+  document.getElementById("pet").textContent = "꒰ᵕ༚ᵕ꒱ zZ";
+  document.getElementById("memory").textContent = "哄睡保護中";
+}else{
+  document.getElementById("pet").textContent = "꒰ ´꒳`∗ ꒱";
+}
 
 },2000);
 
