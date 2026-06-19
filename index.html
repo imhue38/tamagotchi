@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tamagotchi v2</title>
+<title>Tamagotchi v4 Fixed</title>
 
 <style>
 body{
@@ -29,23 +29,69 @@ body{
 
 /* 📺 LCD */
 .screen{
-  width:74%;
+  width:62%;
   height:118px;
   margin:24px auto 0;
   padding:10px;
-  background:#fff;
+  background:linear-gradient(145deg,#ffffff,#f7fbff);
   border-radius:10px;
   text-align:center;
-  box-shadow:inset 5px 5px 10px rgba(0,0,0,.14);
+  box-shadow:
+    inset 5px 5px 10px rgba(0,0,0,.14),
+    inset -3px -3px 8px rgba(255,255,255,.9),
+    0 0 0 2px rgba(190,200,230,.25);
+  position:relative;
+  overflow:hidden;
 }
 
-/* 文字 */
-.level,.status,#emotion,#battery{
+/* 高光 */
+.screen::before{
+  content:"";
+  position:absolute;
+  top:-35%;
+  left:-30%;
+  width:170%;
+  height:70%;
+  background:linear-gradient(120deg,rgba(255,255,255,.65),rgba(255,255,255,0));
+  transform:rotate(-12deg);
+  pointer-events:none;
+}
+
+/* 像素 */
+.screen::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(
+    0deg,
+    rgba(180,200,255,.06) 0px,
+    rgba(180,200,255,.06) 1px,
+    rgba(255,255,255,0) 2px,
+    rgba(255,255,255,0) 3px
+  );
+  pointer-events:none;
+}
+
+/* 📌 文字 */
+.level,
+.status,
+#emotion{
   font-size:10px;
   font-weight:900;
   color:#87c1f5;
 }
 
+/* 🔋 電量 */
+#battery{
+  position:absolute;
+  top:6px;
+  right:8px;
+  font-size:8px;
+  font-weight:900;
+  color:#87c1f5;
+}
+
+/* 🐣 寵物 */
 .pet{
   font-size:22px;
   font-weight:900;
@@ -66,7 +112,7 @@ body{
   background:#b8d2ff;
 }
 
-/* 🎮 按鍵（修復顯示） */
+/* 🎮 按鍵 */
 .buttons{
   position:absolute;
   top:178px;
@@ -100,13 +146,13 @@ body{
 
   <div class="screen">
 
+    <div id="battery">100%</div>
+
     <div class="level" id="level">LV 1</div>
 
     <div class="pet" id="pet">꒰ ´꒳`∗ ꒱</div>
 
     <div id="emotion">心情：普通</div>
-
-    <div id="battery">電量：100%</div>
 
     <div class="status" id="status">正常</div>
 
@@ -116,10 +162,10 @@ body{
 
   </div>
 
-  <!-- 🎮 按鍵已修復 -->
+  <!-- 🎮 已修正：中鍵是 ❤ -->
   <div class="buttons">
-    <button class="btn" onclick="feed()">❤</button>
-    <button class="btn btn-center" onclick="poke()">●</button>
+    <button class="btn" onclick="poke()">◀</button>
+    <button class="btn btn-center" onclick="feed()">❤</button>
     <button class="btn" onclick="next()">▶</button>
   </div>
 
@@ -130,6 +176,7 @@ body{
 let hunger = 0;
 let exp = 0;
 let level = 1;
+let sleep = false;
 
 function feed(){
   hunger = Math.max(0, hunger - 30);
@@ -148,28 +195,34 @@ function next(){
   exp += 5;
 }
 
-/* 🐣 進化系統 */
+/* 🐣 進化 */
 function getPet(){
   if(level >= 10) return "✧꒰◍•ᴗ•◍꒱✧";
   if(level >= 5) return "꒰•̀ᴗ•́꒱";
   return "꒰ ´꒳`∗ ꒱";
 }
 
+/* 💤 睡眠 */
+function checkSleep(){
+  sleep = hunger > 90;
+}
+
+/* 🧠 等級 */
 function updateLevel(){
   if(exp > 50) level = 5;
   if(exp > 120) level = 10;
 }
 
-/* 主循環 */
 setInterval(()=>{
 
 hunger++;
 exp += 0.3;
 
 updateLevel();
+checkSleep();
 
-/* UI */
-document.getElementById("pet").textContent = getPet();
+document.getElementById("pet").textContent =
+sleep ? "꒰ᵕ༚ᵕ꒱ zZ" : getPet();
 
 document.getElementById("level").textContent = "LV " + level;
 
@@ -177,14 +230,13 @@ document.getElementById("fill").style.width =
 Math.min(100,hunger) + "%";
 
 document.getElementById("status").textContent =
-hunger > 70 ? "餓了" : "正常";
+sleep ? "睡覺中" : (hunger > 70 ? "餓了" : "正常");
 
 document.getElementById("emotion").textContent =
-hunger > 70 ? "心情：難過" : "心情：普通";
+sleep ? "心情：睡眠" : (hunger > 70 ? "心情：難過" : "心情：普通");
 
-/* 🔋 電量（純顯示） */
 document.getElementById("battery").textContent =
-"電量：" + (100 - Math.min(100,hunger)) + "%";
+Math.max(0, 100 - Math.min(100,hunger)) + "%";
 
 },2000);
 
