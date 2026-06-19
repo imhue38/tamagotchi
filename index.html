@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tamagotchi AI</title>
+<title>Tamagotchi v2</title>
 
 <style>
 body{
@@ -12,8 +12,8 @@ body{
   justify-content:center;
   align-items:center;
   height:100vh;
-  background:transparent;
   font-family:"PingFang TC","Microsoft JhengHei",sans-serif;
+  background:transparent;
 }
 
 #tama{
@@ -27,7 +27,7 @@ body{
   position:relative;
 }
 
-/* LCD */
+/* 📺 LCD */
 .screen{
   width:74%;
   height:118px;
@@ -39,8 +39,8 @@ body{
   box-shadow:inset 5px 5px 10px rgba(0,0,0,.14);
 }
 
-/* text */
-.level,.status,#emotion{
+/* 文字 */
+.level,.status,#emotion,#battery{
   font-size:10px;
   font-weight:900;
   color:#87c1f5;
@@ -57,6 +57,7 @@ body{
   height:5px;
   background:#e8ecff;
   border-radius:10px;
+  overflow:hidden;
 }
 
 .fill{
@@ -65,6 +66,7 @@ body{
   background:#b8d2ff;
 }
 
+/* 🎮 按鍵（修復顯示） */
 .buttons{
   position:absolute;
   top:178px;
@@ -80,6 +82,14 @@ body{
   border-radius:50%;
   border:none;
   background:linear-gradient(145deg,#ffe3f6,#e6f6ff);
+  box-shadow:0 4px 0 rgba(0,0,0,.15);
+  font-weight:900;
+  cursor:pointer;
+}
+
+.btn-center{
+  width:34px;
+  height:34px;
 }
 </style>
 </head>
@@ -91,8 +101,13 @@ body{
   <div class="screen">
 
     <div class="level" id="level">LV 1</div>
+
     <div class="pet" id="pet">꒰ ´꒳`∗ ꒱</div>
+
     <div id="emotion">心情：普通</div>
+
+    <div id="battery">電量：100%</div>
+
     <div class="status" id="status">正常</div>
 
     <div class="bar">
@@ -101,8 +116,11 @@ body{
 
   </div>
 
+  <!-- 🎮 按鍵已修復 -->
   <div class="buttons">
     <button class="btn" onclick="feed()">❤</button>
+    <button class="btn btn-center" onclick="poke()">●</button>
+    <button class="btn" onclick="next()">▶</button>
   </div>
 
 </div>
@@ -110,33 +128,63 @@ body{
 <script>
 
 let hunger = 0;
-let lastFeed = 0;
+let exp = 0;
+let level = 1;
 
 function feed(){
   hunger = Math.max(0, hunger - 30);
-  lastFeed = Date.now();
+  exp += 10;
 
   document.getElementById("pet").textContent = "‘٩꒰｡•◡•｡꒱۶’";
   setTimeout(()=>document.getElementById("pet").textContent="꒰ ´꒳`∗ ꒱",500);
 }
 
-function getEmotion(){
-  if(hunger > 70) return "😢 餓了";
-  return "😄 普通";
+function poke(){
+  document.getElementById("pet").textContent = "꒰ ◔_◔ ꒱";
+  setTimeout(()=>document.getElementById("pet").textContent="꒰ ´꒳`∗ ꒱",500);
 }
 
+function next(){
+  exp += 5;
+}
+
+/* 🐣 進化系統 */
+function getPet(){
+  if(level >= 10) return "✧꒰◍•ᴗ•◍꒱✧";
+  if(level >= 5) return "꒰•̀ᴗ•́꒱";
+  return "꒰ ´꒳`∗ ꒱";
+}
+
+function updateLevel(){
+  if(exp > 50) level = 5;
+  if(exp > 120) level = 10;
+}
+
+/* 主循環 */
 setInterval(()=>{
 
 hunger++;
+exp += 0.3;
+
+updateLevel();
+
+/* UI */
+document.getElementById("pet").textContent = getPet();
+
+document.getElementById("level").textContent = "LV " + level;
 
 document.getElementById("fill").style.width =
 Math.min(100,hunger) + "%";
 
-document.getElementById("emotion").textContent =
-"心情：" + getEmotion();
-
 document.getElementById("status").textContent =
 hunger > 70 ? "餓了" : "正常";
+
+document.getElementById("emotion").textContent =
+hunger > 70 ? "心情：難過" : "心情：普通";
+
+/* 🔋 電量（純顯示） */
+document.getElementById("battery").textContent =
+"電量：" + (100 - Math.min(100,hunger)) + "%";
 
 },2000);
 
