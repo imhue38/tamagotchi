@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tamagotchi v16.9.1</title>
+<title>Tamagotchi v16.9.2</title>
 
 <style>
 body{
@@ -13,31 +13,14 @@ body{
   justify-content:center;
   align-items:center;
 
-  /* 🌈 去白底：改成柔和漸層 */
-  background: radial-gradient(circle at 50% 40%,
-    #ffffff 0%,
-    #f3f6ff 40%,
-    #e9f1ff 100%);
+  /* 🧼 已改成完全透明背景（你不用動CSS） */
+  background:transparent;
+
   overflow:hidden;
   font-family:"PingFang TC","Microsoft JhengHei",sans-serif;
 }
 
-/* 🫧 背景光暈（讓機身更浮起來） */
-body::before{
-  content:"";
-  position:fixed;
-  width:420px;
-  height:420px;
-  background:radial-gradient(circle,
-    rgba(255,255,255,.8),
-    rgba(255,255,255,0));
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-}
-
-/* 🧸 機身（不變，只加一點柔化） */
+/* 🧸 機身 */
 #tama{
   width:280px;
   height:390px;
@@ -47,9 +30,8 @@ body::before{
   box-sizing:border-box;
   position:relative;
 
-  /* ✨ 更自然浮空 */
   box-shadow:
-    0 25px 45px rgba(0,0,0,.18),
+    0 18px 35px rgba(0,0,0,.18),
     inset -6px -6px 12px rgba(255,255,255,.9),
     inset 6px 6px 12px rgba(150,170,200,.2);
 }
@@ -69,7 +51,7 @@ body::before{
     inset -3px -3px 8px rgba(255,255,255,.9);
 }
 
-/* 🔋 LV */
+/* 🔋 */
 #battery{
   position:absolute;
   top:6px;
@@ -79,6 +61,7 @@ body::before{
   color:#87c1f5;
 }
 
+/* 📈 LV */
 #level{
   position:absolute;
   top:6px;
@@ -217,7 +200,7 @@ button:active{
 
 <script>
 
-/* 🧠 完整系統不變 */
+/* 🧠 完整系統保留 */
 let menuState="main";
 let index=0;
 
@@ -232,69 +215,51 @@ const playMenu=["丟球","玩具","隨機","返回"];
 
 let prefer="apple";
 
-/* 🎮 按鍵 & 系統（完全保留） */
+/* 🎮 控制 */
 function right(){
-
 if(menuState==="main"){
 menuState="mainMenu";
 index=0;
 showMenu();
 return;
 }
-
 index++;
 wrap();
 showMenu();
-
 }
 
 function left(){
-
 if(menuState!=="main"){
 index--;
 wrap();
 showMenu();
 }
-
 }
 
 function ok(){
 
 if(menuState==="mainMenu"){
+const c=mainMenu[index];
 
-const choice=mainMenu[index];
-
-if(choice==="餵食"){
-menuState="feed";
-index=0;
-}
-
-if(choice==="玩耍"){
-menuState="play";
-index=0;
-}
-
-if(choice==="返回"){
-menuState="main";
-}
+if(c==="餵食"){menuState="feed";index=0;}
+if(c==="玩耍"){menuState="play";index=0;}
+if(c==="返回"){menuState="main";}
 
 showMenu();
 return;
 }
 
+/* 🍎 */
 if(menuState==="feed"){
-
 const item=feedMenu[index];
 
 if(item==="蘋果"){
 satiety+=prefer==="apple"?25:10;
 affection+=5;
 }
-
 if(item==="餅乾"){
 satiety+=15;
 }
-
 if(item==="隨機"){
 const r=Math.random();
 if(r<0.25){satiety-=10;affection-=5;}
@@ -307,20 +272,18 @@ showMenu();
 return;
 }
 
+/* 🎮 */
 if(menuState==="play"){
-
 const item=playMenu[index];
 
 if(item==="丟球"){
 affection+=10;
 prefer="toy";
 }
-
 if(item==="玩具"){
 affection+=15;
 prefer="toy";
 }
-
 if(item==="隨機"){
 const r=Math.random();
 if(r<0.25){affection-=10;}
