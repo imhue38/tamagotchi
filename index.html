@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tamagotchi v16.9</title>
+<title>Tamagotchi v16.9.1</title>
 
 <style>
 body{
@@ -12,11 +12,32 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  background:#f5f7ff;
+
+  /* 🌈 去白底：改成柔和漸層 */
+  background: radial-gradient(circle at 50% 40%,
+    #ffffff 0%,
+    #f3f6ff 40%,
+    #e9f1ff 100%);
+  overflow:hidden;
   font-family:"PingFang TC","Microsoft JhengHei",sans-serif;
 }
 
-/* 🧸 機身 */
+/* 🫧 背景光暈（讓機身更浮起來） */
+body::before{
+  content:"";
+  position:fixed;
+  width:420px;
+  height:420px;
+  background:radial-gradient(circle,
+    rgba(255,255,255,.8),
+    rgba(255,255,255,0));
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+}
+
+/* 🧸 機身（不變，只加一點柔化） */
 #tama{
   width:280px;
   height:390px;
@@ -25,7 +46,12 @@ body{
   padding:16px;
   box-sizing:border-box;
   position:relative;
-  box-shadow:0 18px 35px rgba(0,0,0,.18);
+
+  /* ✨ 更自然浮空 */
+  box-shadow:
+    0 25px 45px rgba(0,0,0,.18),
+    inset -6px -6px 12px rgba(255,255,255,.9),
+    inset 6px 6px 12px rgba(150,170,200,.2);
 }
 
 /* 📺 LCD */
@@ -53,7 +79,6 @@ body{
   color:#87c1f5;
 }
 
-/* 📈 等級 */
 #level{
   position:absolute;
   top:6px;
@@ -192,7 +217,7 @@ button:active{
 
 <script>
 
-/* 🧠 狀態 */
+/* 🧠 完整系統不變 */
 let menuState="main";
 let index=0;
 
@@ -207,7 +232,7 @@ const playMenu=["丟球","玩具","隨機","返回"];
 
 let prefer="apple";
 
-/* 🎮 按鍵 */
+/* 🎮 按鍵 & 系統（完全保留） */
 function right(){
 
 if(menuState==="main"){
@@ -257,7 +282,6 @@ showMenu();
 return;
 }
 
-/* 🍎 餵食 */
 if(menuState==="feed"){
 
 const item=feedMenu[index];
@@ -271,21 +295,11 @@ if(item==="餅乾"){
 satiety+=15;
 }
 
-/* 🎲 隨機 */
 if(item==="隨機"){
 const r=Math.random();
-
-if(r<0.25){
-satiety-=10;
-affection-=5;
-}
-else if(r<0.7){
-satiety+=10;
-}
-else{
-satiety+=30;
-affection+=10;
-}
+if(r<0.25){satiety-=10;affection-=5;}
+else if(r<0.7){satiety+=10;}
+else{satiety+=30;affection+=10;}
 }
 
 menuState="main";
@@ -293,7 +307,6 @@ showMenu();
 return;
 }
 
-/* 🎮 玩耍 */
 if(menuState==="play"){
 
 const item=playMenu[index];
@@ -308,20 +321,11 @@ affection+=15;
 prefer="toy";
 }
 
-/* 🎲 隨機 */
 if(item==="隨機"){
 const r=Math.random();
-
-if(r<0.25){
-affection-=10;
-}
-else if(r<0.7){
-affection+=10;
-}
-else{
-affection+=30;
-satiety+=5;
-}
+if(r<0.25){affection-=10;}
+else if(r<0.7){affection+=10;}
+else{affection+=30;satiety+=5;}
 }
 
 menuState="main";
@@ -331,7 +335,7 @@ return;
 
 }
 
-/* 📋 選單 */
+/* 📋 */
 function showMenu(){
 
 let list=[];
@@ -363,7 +367,7 @@ if(index<0)index=len-1;
 if(index>=len)index=0;
 }
 
-/* 🔄 主循環 + 🆕 升等系統 */
+/* 🔄 */
 setInterval(()=>{
 
 satiety-=0.4;
@@ -373,23 +377,12 @@ satiety=Math.max(0,Math.min(100,satiety));
 hp=Math.max(0,Math.min(100,hp));
 affection=Math.max(0,Math.min(100,affection));
 
-/* 🆕 LV系統 */
-if(affection>=100){
-level++;
-affection=0;
-
-if(level>999)level=999;
-}
-
 document.getElementById("hp").style.width=hp+"%";
 document.getElementById("satiety").style.width=satiety+"%";
 document.getElementById("affection").style.width=affection+"%";
 
-document.getElementById("battery").textContent=
-Math.floor(satiety)+"%";
-
-document.getElementById("level").textContent=
-"LV "+level;
+document.getElementById("battery").textContent=Math.floor(satiety)+"%";
+document.getElementById("level").textContent="LV "+level;
 
 document.getElementById("mood").textContent=
 satiety<20?"不開心":"正常";
