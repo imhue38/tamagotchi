@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tamagotchi AI</title>
+
+<style>
+body{
+  margin:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  background:transparent;
+  font-family:"PingFang TC","Microsoft JhengHei",sans-serif;
+}
+
+#tama{
+  width:190px;
+  height:250px;
+  background:linear-gradient(145deg,#ffe3f6,#e6f6ff);
+  border-radius:58% 58% 52% 52%;
+  padding:14px;
+  transform:scale(0.85);
+  box-shadow:0 10px 20px rgba(0,0,0,.12);
+  position:relative;
+}
+
+/* LCD */
+.screen{
+  width:74%;
+  height:118px;
+  margin:24px auto 0;
+  padding:10px;
+  background:#fff;
+  border-radius:10px;
+  text-align:center;
+  box-shadow:inset 5px 5px 10px rgba(0,0,0,.14);
+}
+
+/* text */
+.level,.status,#emotion{
+  font-size:10px;
+  font-weight:900;
+  color:#87c1f5;
+}
+
+.pet{
+  font-size:22px;
+  font-weight:900;
+  color:#baa3d6;
+  margin:6px 0;
+}
+
+.bar{
+  height:5px;
+  background:#e8ecff;
+  border-radius:10px;
+}
+
+.fill{
+  height:100%;
+  width:0%;
+  background:#b8d2ff;
+}
+
+.buttons{
+  position:absolute;
+  top:178px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:12px;
+}
+
+.btn{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:none;
+  background:linear-gradient(145deg,#ffe3f6,#e6f6ff);
+}
+</style>
+</head>
+
+<body>
+
+<div id="tama">
+
+  <div class="screen">
+
+    <div class="level" id="level">LV 1</div>
+    <div class="pet" id="pet">꒰ ´꒳`∗ ꒱</div>
+    <div id="emotion">心情：普通</div>
+    <div class="status" id="status">正常</div>
+
+    <div class="bar">
+      <div class="fill" id="fill"></div>
+    </div>
+
+  </div>
+
+  <div class="buttons">
+    <button class="btn" onclick="feed()">❤</button>
+  </div>
+
+</div>
+
+<script>
+
+let hunger = 0;
+let lastFeed = 0;
+
+function feed(){
+  hunger = Math.max(0, hunger - 30);
+  lastFeed = Date.now();
+
+  document.getElementById("pet").textContent = "‘٩꒰｡•◡•｡꒱۶’";
+  setTimeout(()=>document.getElementById("pet").textContent="꒰ ´꒳`∗ ꒱",500);
+}
+
+function getEmotion(){
+  if(hunger > 70) return "😢 餓了";
+  return "😄 普通";
+}
+
+setInterval(()=>{
+
+hunger++;
+
+document.getElementById("fill").style.width =
+Math.min(100,hunger) + "%";
+
+document.getElementById("emotion").textContent =
+"心情：" + getEmotion();
+
+document.getElementById("status").textContent =
+hunger > 70 ? "餓了" : "正常";
+
+},2000);
+
+</script>
+
+</body>
+</html>
